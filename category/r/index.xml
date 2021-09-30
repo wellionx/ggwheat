@@ -14,11 +14,11 @@
     
     <item>
       <title>My first R package--ggwheat</title>
-      <link>/contact/my-first-r-package-ggwheat/</link>
+      <link>/ggwheat/my-first-r-package-ggwheat/</link>
       <pubDate>Tue, 28 Sep 2021 00:00:00 +0000</pubDate>
-      <guid>/contact/my-first-r-package-ggwheat/</guid>
+      <guid>/ggwheat/my-first-r-package-ggwheat/</guid>
       <description>
-&lt;script src=&#34;/contact/my-first-r-package-ggwheat/index.en_files/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;/ggwheat/my-first-r-package-ggwheat/index.en_files/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
 
 
 &lt;p&gt;关于这个R包，早期也写过一篇介绍的文章，推送在小麦研究联盟的公众号上（&lt;a href=&#34;https://mp.weixin.qq.com/s/N8dmPifnM_0Xhpcjcjmn_A&#34;&gt;一千零一技 | 我用R画了一株小麦&lt;/a&gt;）。&lt;/p&gt;
@@ -53,22 +53,22 @@
 &lt;div id=&#34;数据融合与基础功能开发&#34; class=&#34;section level3&#34;&gt;
 &lt;h3&gt;2. 数据融合与基础功能开发&lt;/h3&gt;
 &lt;p&gt;先来看下例子。这个例子中，使用随机数为小麦植株9中器官做了赋值。通过图中颜色可以明显辨别不同器官的数值差异。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;/contact/my-first-r-package-ggwheat/index.en_files/figure-html/unnamed-chunk-1-1.png&#34; width=&#34;672&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;/ggwheat/my-first-r-package-ggwheat/index.en_files/figure-html/unnamed-chunk-1-1.png&#34; width=&#34;672&#34; /&gt;
 &lt;strong&gt;添加数据标签功能&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;然而，仅仅通过颜色的变化好像还不足以展示出器官间的不同。尤其是当某几个器官数据差异不大导致颜色无法分辨时。就有必要用具体的数据加以区分了。我们通过对每个器官添加标签的方式来实现。提前在器官上选取坐标作为标签在器官的位置。为了使显示的数值标签不遮挡，采用R包&lt;code&gt;ggrepel&lt;/code&gt;进行标签展示。具体结果如下图所示。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;/contact/my-first-r-package-ggwheat/index.en_files/figure-html/unnamed-chunk-2-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;/ggwheat/my-first-r-package-ggwheat/index.en_files/figure-html/unnamed-chunk-2-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;添加不同调色板&lt;/strong&gt;
 最初做颜色展示的时候，只考虑用颜色变异大的色彩。spectral色板成为了首选。当时当成品出来的时候，发现并不是那么好看。于是又挑选了其他几种色板，可以根据需要自行选择。比如，我要展示的氮含量的数据。这个数据植株绿色相关，我希望颜色越绿，表示的氮含量越高。而又希望对比色略微有些差异。那我就可以用YlGn色板。也就是图中第四个展示的。
-&lt;img src=&#34;/contact/my-first-r-package-ggwheat/index.en_files/figure-html/unnamed-chunk-3-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;img src=&#34;/ggwheat/my-first-r-package-ggwheat/index.en_files/figure-html/unnamed-chunk-3-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;展示时间尺度的变化&lt;/strong&gt;
 上面讲到的仅仅是单株小麦在器官之间的空间变化。而我们实际试验过程中不仅仅取一次样品。如果多次取样，如何展示其时间变化呢。&lt;/p&gt;
 &lt;p&gt;ggplot中的分面功能很好的解决了这个问题。下面这张图就是展示时空变化的小麦植株氮浓度(同头图)。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;/contact/my-first-r-package-ggwheat/index.en_files/figure-html/unnamed-chunk-4-1.png&#34; width=&#34;1632&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;/ggwheat/my-first-r-package-ggwheat/index.en_files/figure-html/unnamed-chunk-4-1.png&#34; width=&#34;1632&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;任意组合不同时间下的植株&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;展示开花期和成熟期的济麦22与农大399两个小麦品种，并且加上数值标签。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;/contact/my-first-r-package-ggwheat/index.en_files/figure-html/unnamed-chunk-5-1.png&#34; width=&#34;960&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;/ggwheat/my-first-r-package-ggwheat/index.en_files/figure-html/unnamed-chunk-5-1.png&#34; width=&#34;960&#34; /&gt;
 以上是品种济麦22&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;/contact/my-first-r-package-ggwheat/index.en_files/figure-html/unnamed-chunk-6-1.png&#34; width=&#34;960&#34; /&gt;
+&lt;p&gt;&lt;img src=&#34;/ggwheat/my-first-r-package-ggwheat/index.en_files/figure-html/unnamed-chunk-6-1.png&#34; width=&#34;960&#34; /&gt;
 以上是品种农大399&lt;/p&gt;
 &lt;/div&gt;
 &lt;div id=&#34;开发r包&#34; class=&#34;section level3&#34;&gt;
