@@ -1,0 +1,268 @@
+---
+title: My first R package--ggwheat
+author: wei
+date: '2021-09-28'
+slug: my-first-r-package-ggwheat
+categories:
+  - R
+tags:
+  - academic
+  - Wheat
+subtitle: ''
+summary: '作为一名R重度用户，平时用的最多的是画图。所以人生中第一个R包是关于可视化的。由于喜欢ggplot的简洁绘图风格，所以在ggplot的基础上开始了创作。而且还将包的名字命名为ggwheat。'
+authors: []
+lastmod: '2021-09-28T08:19:30+08:00'
+featured: no
+image:
+  caption: 'image created by Wei Li'
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+关于这个R包，早期也写过一篇介绍的文章，推送在小麦研究联盟的公众号上（[一千零一技 | 我用R画了一株小麦](https://mp.weixin.qq.com/s/N8dmPifnM_0Xhpcjcjmn_A)）。
+
+当时仅仅是在我的电脑上实现了一个小麦植株器官的可视化功能。后来，有很多人对这个功能感兴趣。于是将这个功能写成R包的计划就提上日程。
+
+在介绍这个R包的功能之前，先简单回顾一下整个创作工程。
+
+我将其分为3个步骤：
+
+ 1. 素材准备与制作
+ 2. 数据融合与功能优化
+ 3. R包开发
+
+下面将逐一介绍各个步骤
+
+### 1. 素材准备与制作
+
+这个步骤应该是最难的，我觉得。
+
+最初有这个想法，是和本实验室的一本博士生讨论的时候萌生的。当时我们都觉的有必要用一种更简单和直观的方式展示数据。然而苦于没有合适的素材和展示方式，当时就将此事搁浅了。
+
+后来，一次偶然的机会。在搜集素材时找到一个小麦植株的矢量图。当时的素材时这个样子。
+![](https://gitee.com/wellionx/myimg/raw/master/src_selected.jpg)
+
+看到这张图的时候，我们一致认为，这就是要找的素材。
+
+找到素材之后，接下来就该考虑怎么使用了。
+
+我们的想法很简单，找一株最具有代表性的小麦植株，用来展示小麦各器官的。相对来说比较完整的，应该是开花到灌浆期间。这个期间整个植株的发育已经完成，而且穗也比较完全。所以最终选择了灌浆期的这株小麦素材。
+
+选好以后，我们就将素材直接放到PPT中做了试验。由于素材各器官是分开的，在PPT中作为形状独立存在。因此，不同器官的化学成分含量可以用该器官形状的颜色的展示。初步的效果如下图。
+![](https://gitee.com/wellionx/myimg/raw/master/wheat_plant_ver1.png)
+
+然而，当我们耗时一个多小时将上面的图画完的时候，我们觉得如果小麦植株绘图如果以后要这样用的话，就太麻烦了。每次都需要手动注入数据信息，而且这个过程全凭感觉。
+
+这个时候，我想到了R。作为一款专业绘图的统计软件，R在可视化方面有着十分强大的功能。
+
+我们案例中，展示植株的形状，和地图的多边形有诸多相似之处。R语言中恰好有一款展示地图数据的R包`sf`。这个R包不仅有展示地图的功能，还能自己制作地图。而地图制作中的其中一个元素，多边形，正是和我们做的小麦植株轮廓相似。
+
+于是接下来转战到用R包`sf`进行小麦植株器官可视化。
+
+首选需要根据素材，制作出来小麦植株各器官的多边形轮廓。这个步骤在公众号文章（[一千零一技 | 我用R画了一株小麦](https://mp.weixin.qq.com/s/N8dmPifnM_0Xhpcjcjmn_A)）有详细介绍，在此不再赘述。
+![](https://gitee.com/wellionx/myimg/raw/master/plotwehatinR.png)
+
+将图形组合成完整的植株，就可以在R里面就行操作了。
+
+### 2. 数据融合与基础功能开发
+
+先来看下例子。这个例子中，使用随机数为小麦植株9中器官做了赋值。通过图中颜色可以明显辨别不同器官的数值差异。
+
+```{r echo=FALSE}
+load("D:/Data/datav/wheat chart polygon_demo.RData")
+library(ggplot2)
+set.seed(2018)
+whtpoly$value <- runif(9, min = 2, max = 10)
+ggplot(data = whtpoly) +
+  geom_sf(aes(fill = value)) +
+  scale_fill_distiller(palette = "Spectral",
+                       limits = c(min(whtpoly$value),max(whtpoly$value)),
+                       name = "Value", 
+                       label = scales::comma
+  ) + theme(legend.position = "right")  +
+  theme_void()
+```
+**添加数据标签功能**
+
+然而，仅仅通过颜色的变化好像还不足以展示出器官间的不同。尤其是当某几个器官数据差异不大导致颜色无法分辨时。就有必要用具体的数据加以区分了。我们通过对每个器官添加标签的方式来实现。提前在器官上选取坐标作为标签在器官的位置。为了使显示的数值标签不遮挡，采用R包`ggrepel`进行标签展示。具体结果如下图所示。
+
+```{r echo=FALSE}
+
+library(ggrepel)
+
+ggplot(data = whtpoly) +
+  geom_sf(aes(fill = value)) +
+  scale_fill_distiller(palette = "Spectral",
+                       limits = c(min(whtpoly$value),max(whtpoly$value)),
+                       name = "Value", 
+                       label = scales::comma
+  ) + theme(legend.position = "right")  +
+  geom_label_repel(data = whtpoly, aes(x=X, y=Y,label = sprintf("%0.2f", round(value, digits = 2))),
+                   inherit.aes=FALSE,
+                   label.size = 0.8,
+                   min.segment.length = 0.2,
+                   box.padding   = 0.65, 
+                   point.padding = 0.5,
+                   segment.color = 'grey50') +
+  theme_void()
+```
+
+**添加不同调色板**
+最初做颜色展示的时候，只考虑用颜色变异大的色彩。spectral色板成为了首选。当时当成品出来的时候，发现并不是那么好看。于是又挑选了其他几种色板，可以根据需要自行选择。比如，我要展示的氮含量的数据。这个数据植株绿色相关，我希望颜色越绿，表示的氮含量越高。而又希望对比色略微有些差异。那我就可以用YlGn色板。也就是图中第四个展示的。
+```{r echo=FALSE, message=FALSE, warning=FALSE, crop = TRUE}
+# using JM22 anthesis day W0 treatment
+p1<- ggplot(data = JM22_AA) +
+  geom_sf(aes(fill = mean_N_content)) +
+  scale_fill_continuous(
+    low = "white", high = "red", name = "Value", label = scales::comma
+  ) + theme(legend.position = "none") +
+  theme_void()
+
+p2 <- ggplot(data = JM22_AA) +
+  geom_sf(aes(fill = mean_N_content)) +
+  scale_fill_continuous(
+    low = "white", high = "green", name = "Value", label = scales::comma
+  ) + theme(legend.position = "none") +
+  theme_void()
+
+p3 <- ggplot(data = JM22_AA) +
+  geom_sf(aes(fill = mean_N_content)) +
+  scale_fill_distiller(palette = "Spectral", name = "Value", label = scales::comma
+  ) + theme(legend.position = "none") +
+  theme_void()
+
+p4 <- ggplot(data = JM22_AA) +
+  geom_sf(aes(fill = mean_N_content)) +
+  scale_fill_distiller(palette = "YlGn", name = "Value", label = scales::comma
+  ) + theme(legend.position = "none") +
+  theme_void()
+
+
+library(cowplot)
+
+plot_grid(p1,p2,p3,p4,ncol = 4)
+
+```
+
+**展示时间尺度的变化**
+上面讲到的仅仅是单株小麦在器官之间的空间变化。而我们实际试验过程中不仅仅取一次样品。如果多次取样，如何展示其时间变化呢。
+
+ggplot中的分面功能很好的解决了这个问题。下面这张图就是展示时空变化的小麦植株氮浓度(同头图)。
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, crop = TRUE, fig.width=17,fig.height=7}
+#Color palette -- Yellow to Green ####
+ggplot(data = df_filter) +
+  facet_grid(variety ~ DAA, switch = "y") +
+  geom_sf(aes(fill = mean_N_content)) +
+  scale_fill_distiller(palette = "YlGn",direction = 1,
+                       
+                       limits = c(0, max(df_filter$mean_N_content)),
+                       name = expression(atop("NC",paste("( g/kg"," )") )), 
+                       label = scales::comma
+  ) + theme(legend.position = "right") +
+  theme(legend.title = element_text(size = 20),
+        legend.text = element_text(size = 20),
+        legend.key.size = unit(1.2, "cm")) +
+  scale_size(guide="none") + # Turn off legend for size
+  #refine background
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  #change grid name 
+  theme(strip.text =  element_text(face="bold", color="black",size=18))+
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
+```
+
+**任意组合不同时间下的植株**
+
+展示开花期和成熟期的济麦22与农大399两个小麦品种，并且加上数值标签。
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, crop = TRUE, fig.width=10,fig.height=7}
+#Color palette -- Yellow to Green ####
+df_filter = df_JM22_A2M
+ggplot(data = df_filter) +
+  facet_grid(variety ~ DAA, switch = "y") +
+  geom_sf(aes(fill = mean_N_content)) +
+  scale_fill_distiller(palette = "YlGn",direction = 1,
+                       
+                       limits = c(0, max(df_filter$mean_N_content)),
+                       name = expression(atop("NC",paste("( g/kg"," )") )), 
+                       label = scales::comma
+  ) + theme(legend.position = "right") +
+  # show the data
+  geom_label_repel(data = df_filter, aes(x=X, y=Y,size = 20 ,label = sprintf("%0.2f", round(mean_N_content, digits = 2))),
+                   inherit.aes=FALSE,
+                   box.padding = unit(1.5, "lines"),
+                   segment.color = 'grey50') +
+  #Change the appearance of legend title and text labels
+  theme(legend.title = element_text(size = 20),
+        legend.text = element_text(size = 20),
+        legend.key.size = unit(1.2, "cm")) +
+  scale_size(guide="none") + # Turn off legend for size
+  #refine background
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  #change grid name 
+  theme(strip.text =  element_text(face="bold", color="black",size=18))+
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
+```
+以上是品种济麦22
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, crop = TRUE, fig.width=10,fig.height=7}
+#Color palette -- Yellow to Green ####
+df_filter = df_ND399_A2M
+ggplot(data = df_filter) +
+  facet_grid(variety ~ DAA, switch = "y") +
+  geom_sf(aes(fill = mean_N_content)) +
+  scale_fill_distiller(palette = "YlGn",direction = 1,
+                       
+                       limits = c(0, max(df_filter$mean_N_content)),
+                       name = expression(atop("NC",paste("( g/kg"," )") )), 
+                       label = scales::comma
+  ) + theme(legend.position = "right") +
+  # show the data
+  geom_label_repel(data = df_filter, aes(x=X, y=Y,size = 20 ,label = sprintf("%0.2f", round(mean_N_content, digits = 2))),
+                   inherit.aes=FALSE,
+                   box.padding = unit(1.5, "lines"),
+                   segment.color = 'grey50') +
+  #Change the appearance of legend title and text labels
+  theme(legend.title = element_text(size = 20),
+        legend.text = element_text(size = 20),
+        legend.key.size = unit(1.2, "cm")) +
+  scale_size(guide="none") + # Turn off legend for size
+  #refine background
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  #change grid name 
+  theme(strip.text =  element_text(face="bold", color="black",size=18))+
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
+```
+以上是品种农大399
+
+### 3. 开发R包
+有了以上的实施思想和实现过程，剩下的就是用R包开发的软件将这些函数打包。统计之都网站有一篇博客介绍了[R包的建立方法](https://cosx.org/2013/11/building-r-packages-easily)。另外，也有一些开发R包的工具，包括`pkgdown`等。
+
+R包开发的过程就是将各种函数写入打包调试的过程。
+![](https://gitee.com/wellionx/myimg/raw/master/R_pkg_dev.jpg)
+目前已经创建好R包开发的项目，接下来就根据前面实现的功能将其转换成函数写入到R包中。
